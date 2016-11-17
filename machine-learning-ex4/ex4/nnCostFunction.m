@@ -63,21 +63,94 @@ Theta2_grad = zeros(size(Theta2));
 %
 
 
+% Add ones to the X data matrix
+X = [ones(m, 1) X];
+
+% to recode y
+eye10 = eye(num_labels,num_labels);
+
+% accumulate J
+for i = 1 : m
+    % a1 = input
+    a1 = X(i,:);
+    a1 = a1'; % make it a column vector
+
+    % compute a2
+    a2 = sigmoid(Theta1 * a1);
+
+    % add bias entry a2
+    a2 = [ones(1,1) a2']';
+
+    % compute a3
+    a3 = sigmoid(Theta2 * a2);
+    
+    % code y as vector
+    recodedY = eye10(:, y(i));
+
+    % cost for this example
+    exampleCost = sum(-recodedY .* log(a3) - (1 - recodedY) .* log(1 - a3));
+
+    J = J + exampleCost;
+ 
+end
+
+J = J / m;
+
+% lop off first column cause it is the bias terms which we don't regularize
+Theta1Trimmed = Theta1(:, 2:end);
+Theta2Trimmed = Theta2(:, 2:end);
+
+% compute regularization term
+regTerm = (lambda / (2 * m)) * ( sum(sum( Theta1Trimmed .* Theta1Trimmed)) + sum(sum(Theta2Trimmed .* Theta2Trimmed)) );
+
+% add it to cost
+J = J + regTerm;
 
 
 
+% back prop 
+Theta1_grad = zeros(size(Theta1));
+Theta2_grad = zeros(size(Theta2));
 
+for t = 1 : m
+    % feed forward
+    % a1 = input
+    a1 = X(t,:);
+    a1 = a1'; % make it a column vector
 
+    % compute a2 (bias units already added to X) 
+    z2 = Theta1 * a1;
+    a2 = sigmoid(z2);
 
+    % add bias entry a2
+    a2 = [ones(1,1) a2']';
 
+    % compute a3
+    z3 = Theta2 * a2;
+    a3 = sigmoid(z3);
+ 
+    % code y as vector
+    recodedY = eye10(:, y(t));
 
+    % feed back, first error term
+    delta3 = (a3 - recodedY);
 
+    % second error term, ignore bias unit
+    delta2 = (Theta2' * delta3)(2:end,:) .* sigmoidGradient(z2);
 
+    % accumulate grad
+    Theta1_grad = Theta1_grad + delta2 * a1';
+    Theta2_grad = Theta2_grad + delta3 * a2';
 
+end
 
+% no regularization on first bias terms
+Theta1_grad(:,1) = Theta1_grad(:,1) / m;
+Theta2_grad(:,1) = Theta2_grad(:,1) / m;
 
-
-
+% regularization on following terms
+Theta1_grad(:,2:end) = Theta1_grad(:,2:end) / m + Theta1(:,2:end) * (lambda / m);
+Theta2_grad(:,2:end) = Theta2_grad(:,2:end) / m + Theta2(:,2:end) * (lambda / m);;
 
 
 % -------------------------------------------------------------
