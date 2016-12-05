@@ -29,7 +29,7 @@ fprintf('Loading and Visualizing Data ...\n')
 
 % Load from ex5data1: 
 % You will have X, y, Xval, yval, Xtest, ytest in your environment
-load ('ex5data1.mat');
+load ('ex5data1.txt');
 
 % m = Number of examples
 m = size(X, 1);
